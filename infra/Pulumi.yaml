@@ -1,0 +1,7 @@
+name: oc-student-project-7
+runtime:
+  name: python
+  options:
+    toolchain: uv
+    virtualenv: ../venv
+description: Azure infrastructure for the OC student project converted from Terraform to Pulumi.

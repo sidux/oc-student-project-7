@@ -1,0 +1,68 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+textarea {
+    width: 80%;
+    height: 150px;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    resize: vertical;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #3e8e41;
+}
+
+#result {
+    margin-top: 30px;
+    border: 1px solid #ccc;
+    padding: 20px;
+    border-radius: 5px;
+    display: none; /* Initially hidden */
+}
+
+#feedbackButtons button {
+    margin: 0 10px;
+    font-size: 20px; /* Make buttons a bit bigger */
+}
+
+button[disabled] {
+  background-color: #cccccc; /* Light gray */
+  color: #666666;          /* Darker gray text */
+  cursor: not-allowed;      /* Show "not allowed" cursor */
+}
+
+#loadingMessage {
+    font-style: italic;
+    color: #888888; /* Slightly grayed out */
+}
+
+#feedbackMessage {
+  font-style: italic;
+  color: green; /* Or any suitable color */
+  margin-top: 5px; /* Add some spacing */
+}
