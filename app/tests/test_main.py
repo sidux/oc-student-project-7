@@ -30,29 +30,17 @@ class _DummyModel:
 @pytest.fixture
 def app_module(monkeypatch, tmp_path):
     """Reload app.main with lightweight tokenizer/model stubs."""
-    import transformers
-
     sys.modules.pop("app.main", None)
-
-    dummy_tokenizer = _DummyTokenizer()
-    dummy_model = _DummyModel()
-
-    monkeypatch.setattr(
-        transformers.BertTokenizer,
-        "from_pretrained",
-        lambda *args, **kwargs: dummy_tokenizer,
-    )
-    monkeypatch.setattr(
-        transformers.TFBertForSequenceClassification,
-        "from_pretrained",
-        lambda *args, **kwargs: dummy_model,
-    )
+    monkeypatch.setenv("TESTING", "1")
 
     module_path = Path(__file__).resolve().parents[1] / "main.py"
     spec = importlib_util.spec_from_file_location("app.main", module_path)
     assert spec and spec.loader, "Could not build spec for app.main"
     app_main = importlib_util.module_from_spec(spec)
     spec.loader.exec_module(app_main)
+
+    app_main.tokenizer = _DummyTokenizer()
+    app_main.model = _DummyModel()
     app_main.FEEDBACK_FILE = tmp_path / "feedback.csv"
     return app_main
 

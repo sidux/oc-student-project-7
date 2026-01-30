@@ -28,8 +28,9 @@ load_dotenv()
 APP_DIR = Path(__file__).resolve().parent
 MODEL_DIR = APP_DIR / "model" / "my_bert_model"
 FALLBACK_MODEL_DIR = APP_DIR.parent / "result" / "my_bert_model"
+TESTING = os.getenv("TESTING", "").lower() in ("1", "true", "yes")
 MODEL_PATH = MODEL_DIR if MODEL_DIR.exists() else FALLBACK_MODEL_DIR
-if not MODEL_PATH.exists():
+if not TESTING and not MODEL_PATH.exists():
     raise FileNotFoundError(
         f"Could not find a fine-tuned BERT model in {MODEL_DIR} "
         f"or {FALLBACK_MODEL_DIR}. Run the notebook to export the model first."
@@ -54,9 +55,13 @@ if not FEEDBACK_FILE.exists():
         writer.writerow(["text", "predicted_label", "confidence", "correct"])
 
 # 1. Load model and tokenizer at startup (or lazily in the endpoint)
-print(f"Loading model and tokenizer from {MODEL_PATH} ...")
-tokenizer = BertTokenizer.from_pretrained(str(MODEL_PATH))
-model = TFBertForSequenceClassification.from_pretrained(str(MODEL_PATH))
+if not TESTING:
+    print(f"Loading model and tokenizer from {MODEL_PATH} ...")
+    tokenizer = BertTokenizer.from_pretrained(str(MODEL_PATH))
+    model = TFBertForSequenceClassification.from_pretrained(str(MODEL_PATH))
+else:
+    tokenizer = None  # type: ignore[assignment]
+    model = None  # type: ignore[assignment]
 
 # 2. Your classify_tweet function goes here
 label_map = {0: "Negative", 1: "Neutral", 2: "Positive"}
