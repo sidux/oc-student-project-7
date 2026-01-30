@@ -333,7 +333,8 @@ def run_logistic_regression(X_train, y_train, X_val, y_val, X_test, y_test, prep
         mlflow.log_artifact(str(report_path), artifact_path="reports")
 
         # Log model
-        mlflow.sklearn.log_model(log_reg, artifact_path=f"logreg_model_{preprocessing_label}")
+        mlflow.sklearn.log_model(log_reg, artifact_path=f"logreg_model_{preprocessing_label}",
+                                 input_example=X_test_tfidf[:5])
 
         print(f"[LogReg ({preprocessing_label})] Val Acc: {val_acc:.4f}, Test Acc: {test_acc:.4f}")
         print(cls_report)
@@ -507,7 +508,8 @@ def run_lstm_experiment(
         mlflow.log_artifact(str(report_path), artifact_path="reports")
 
         # Log model
-        mlflow.tensorflow.log_model(model, artifact_path=f"lstm_model_{preprocessing_label}")
+        mlflow.tensorflow.log_model(model, artifact_path=f"lstm_model_{preprocessing_label}",
+                                    input_example=X_test_pad[:5])
 
         print(f"[LSTM {preprocessing_label}] Test Acc: {test_acc:.4f}")
         print(cls_report)
@@ -637,7 +639,8 @@ def run_lstm_pretrained(
         mlflow.log_artifact(str(report_path), artifact_path="reports")
 
         # Log model
-        mlflow.tensorflow.log_model(model, artifact_path=f"lstm_model_{experiment_name}")
+        mlflow.tensorflow.log_model(model, artifact_path=f"lstm_model_{experiment_name}",
+                                    input_example=X_test_pad[:5])
 
         print(f"[LSTM {experiment_name}] Test Acc: {test_acc:.4f}")
         print(cls_report)
@@ -675,21 +678,16 @@ run_lstm_pretrained(
 # We'll sample smaller subsets because BERT is expensive.
 
 def bert_encode(texts, tokenizer, max_len=30):
-    input_ids = []
-    attention_masks = []
-    for txt in texts:
-        encoded = tokenizer.encode_plus(
-            txt,
-            add_special_tokens=True,
-            max_length=max_len,
-            truncation=True,
-            padding='max_length',
-            return_attention_mask=True,
-            return_tensors='tf'
-        )
-        input_ids.append(encoded['input_ids'])
-        attention_masks.append(encoded['attention_mask'])
-    return (tf.concat(input_ids, axis=0), tf.concat(attention_masks, axis=0))
+    encoded = tokenizer(
+        list(texts),
+        add_special_tokens=True,
+        max_length=max_len,
+        truncation=True,
+        padding='max_length',
+        return_attention_mask=True,
+        return_tensors='tf'
+    )
+    return (encoded['input_ids'], encoded['attention_mask'])
 
 
 def export_model_artifacts(model, tokenizer):
@@ -713,15 +711,15 @@ def run_bert_experiment(
         export_for_app=False,
 ):
     MODEL_NAME = "bert-base-uncased"
-    EPOCHS = 15
+    EPOCHS = 2
     BATCH_SIZE = 16
     MAX_LEN = 30
-    patience = 5
+    patience = 1
 
     # We'll pick smaller sample sizes
-    train_sample_size = 3000
-    val_sample_size = 1000
-    test_sample_size = 1000
+    train_sample_size = 1500
+    val_sample_size = 500
+    test_sample_size = 500
 
     with mlflow.start_run(run_name=f"BERT_{preprocessing_label}_Experiment"):
         mlflow.log_param("model_name", MODEL_NAME)
@@ -807,7 +805,8 @@ def run_bert_experiment(
             f.write(cls_report)
         mlflow.log_artifact(str(report_path), artifact_path="reports")
 
-        mlflow.tensorflow.log_model(bert_model, artifact_path=f"bert_model_{preprocessing_label}")
+        mlflow.tensorflow.log_model(bert_model, artifact_path=f"bert_model_{preprocessing_label}",
+                                    input_example={"input_ids": test_ids[:5].numpy(), "attention_mask": test_masks[:5].numpy()})
 
         if export_for_app:
             export_model_artifacts(bert_model, bert_tokenizer)
@@ -946,7 +945,8 @@ def run_use_experiment(
         mlflow.log_artifact(str(report_path), artifact_path="reports")
 
         # Log model
-        mlflow.tensorflow.log_model(use_classifier, artifact_path=f"use_model_{preprocessing_label}")
+        mlflow.tensorflow.log_model(use_classifier, artifact_path=f"use_model_{preprocessing_label}",
+                                    input_example=X_test_use[:5])
 
         print(f"[USE {preprocessing_label}] Test Acc: {test_acc:.4f}")
         print(cls_report)

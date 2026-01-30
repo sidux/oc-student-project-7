@@ -1426,45 +1426,6 @@ def store_feedback(feedback: FeedbackInput):
 
 ---
 
-## 23. Prochaines Étapes
-
-### Roadmap d'évolution
-
-<div class="two-cols">
-
-<div>
-
-**Court terme** :
-1. Optimiser USE avec architectures plus profondes
-2. Étendre BERT à 30-50k samples
-3. Implémenter FastText comme alternative
-
-**Moyen terme** :
-4. Synchroniser feedbacks → MLflow automatiquement
-5. Créer workbook Azure Monitor
-6. Déploiement multi-modèles (A/B testing)
-
-</div>
-
-<div>
-
-**Long terme** :
-7. Détection automatique de drift
-8. Réentraînement automatisé
-9. Extension multi-langue (FR, ES)
-
-<div class="highlight-box">
-
-**Objectif** : Passer d'un prototype fonctionnel à un système MLOps mature avec amélioration continue automatisée.
-
-</div>
-
-</div>
-
-</div>
-
----
-
 <!-- _class: title-slide -->
 
 # Merci de votre attention
@@ -1474,11 +1435,10 @@ def store_feedback(feedback: FeedbackInput):
 <br>
 
 **Ressources** :
-- Repository : GitHub
+- Repository : GitHub https://github.com/sidux/oc-student-project-7
 - API : Azure App Service  
 - Monitoring : Application Insights
 - Documentation : `blog.md`
 
 <br>
 
-*Projet réalisé dans le cadre de la formation Data Science*

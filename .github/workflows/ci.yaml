@@ -9,10 +9,16 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 env:
   PYTHON_VERSION: "3.12"
   UV_CACHE_DIR: .cache/uv
+  AZURE_RESOURCE_GROUP: oc-student-project-7
+  AZURE_WEBAPP_NAME: oc-student-project-7-app
+  AZURE_ACR_NAME: ocstudentproject7
+  AZURE_ACR_LOGIN_SERVER: ocstudentproject7.azurecr.io
+  AZURE_IMAGE_REPOSITORY: oc-student-project-7
 
 jobs:
   python:
@@ -66,3 +72,54 @@ jobs:
 
       - name: Build API image
         run: docker build --tag oc-student-project-7:ci .
+
+  deploy:
+    name: Deploy (Azure)
+    runs-on: ubuntu-latest
+    needs: python
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') &&
+      secrets.AZURE_CREDENTIALS != ''
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        run: az acr login --name "${{ env.AZURE_ACR_NAME }}"
+
+      - name: Build & push image (sha + latest)
+        env:
+          IMAGE: "${{ env.AZURE_ACR_LOGIN_SERVER }}/${{ env.AZURE_IMAGE_REPOSITORY }}"
+          TAG_SHA: "${{ github.sha }}"
+        run: |
+          docker build -t "${IMAGE}:${TAG_SHA}" -t "${IMAGE}:latest" .
+          docker push "${IMAGE}:${TAG_SHA}"
+          docker push "${IMAGE}:latest"
+
+      - name: Deploy image to Web App
+        env:
+          IMAGE: "${{ env.AZURE_ACR_LOGIN_SERVER }}/${{ env.AZURE_IMAGE_REPOSITORY }}"
+          TAG_SHA: "${{ github.sha }}"
+        run: |
+          ACR_USERNAME=$(az acr credential show -n "${{ env.AZURE_ACR_NAME }}" --query username -o tsv)
+          ACR_PASSWORD=$(az acr credential show -n "${{ env.AZURE_ACR_NAME }}" --query "passwords[0].value" -o tsv)
+          echo "::add-mask::${ACR_PASSWORD}"
+
+          az webapp config container set \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ env.AZURE_WEBAPP_NAME }}" \
+            --container-image-name "${IMAGE}:${TAG_SHA}" \
+            --container-registry-url "https://${{ env.AZURE_ACR_LOGIN_SERVER }}" \
+            --container-registry-user "${ACR_USERNAME}" \
+            --container-registry-password "${ACR_PASSWORD}"
+
+          az webapp restart \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ env.AZURE_WEBAPP_NAME }}"

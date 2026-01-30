@@ -5,15 +5,38 @@ const loadingMessage = document.getElementById('loadingMessage');
 const resultMessage = document.getElementById('resultMessage');
 const sentimentSpan = document.getElementById('sentiment');
 const confidenceSpan = document.getElementById('confidence');
+const modelUsedSpan = document.getElementById('modelUsed');
 const feedbackButtons = document.getElementById('feedbackButtons');
 const thumbsUpButton = document.getElementById('thumbsUp');
 const thumbsDownButton = document.getElementById('thumbsDown');
 const feedbackMessage = document.getElementById('feedbackMessage');
+const modelSelect = document.getElementById('modelSelect');
 
 let currentPrediction = null;
 
+// Fetch available models on page load
+fetch('/models')
+    .then(response => response.json())
+    .then(data => {
+        modelSelect.innerHTML = '';
+        data.models.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model.toUpperCase();
+            if (model === data.default) {
+                option.selected = true;
+            }
+            modelSelect.appendChild(option);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching models:', error);
+        modelSelect.innerHTML = '<option value="">Error loading models</option>';
+    });
+
 predictButton.addEventListener('click', () => {
     const tweetText = tweetInput.value;
+    const selectedModel = modelSelect.value;
 
     if (tweetText.trim() === "") {
         alert("Please enter a tweet!");
@@ -34,7 +57,7 @@ predictButton.addEventListener('click', () => {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ text: tweetText })
+        body: JSON.stringify({ text: tweetText, model: selectedModel })
     })
     .then(response => response.json())
     .then(data => {
@@ -42,13 +65,15 @@ predictButton.addEventListener('click', () => {
         resultMessage.style.display = 'block';
         sentimentSpan.textContent = data.label;
         confidenceSpan.textContent = data.confidence.toFixed(2);
+        modelUsedSpan.textContent = data.model.toUpperCase();
         feedbackButtons.style.display = 'block';
         loadingMessage.style.display = 'none';
 
         currentPrediction = {
             text: tweetText,
             label: data.label,
-            confidence: data.confidence
+            confidence: data.confidence,
+            model: data.model
         };
     })
     .catch(error => {
