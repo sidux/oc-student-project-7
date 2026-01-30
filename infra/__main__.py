@@ -50,7 +50,7 @@ service_plan = azure.appservice.ServicePlan(
     location=resource_group.location,
     resource_group_name=resource_group.name,
     os_type="Linux",
-    sku_name="B1",
+    sku_name="B2",
     opts=default_opts,
 )
 

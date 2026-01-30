@@ -692,6 +692,20 @@ def bert_encode(texts, tokenizer, max_len=30):
     return (tf.concat(input_ids, axis=0), tf.concat(attention_masks, axis=0))
 
 
+def export_model_artifacts(model, tokenizer):
+    """
+    Persist the fine-tuned BERT model for both offline analysis and the FastAPI app.
+    """
+    MODEL_EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+    model.save_pretrained(MODEL_EXPORT_DIR)
+    tokenizer.save_pretrained(MODEL_EXPORT_DIR)
+
+    if APP_MODEL_DIR.exists():
+        shutil.rmtree(APP_MODEL_DIR)
+    shutil.copytree(MODEL_EXPORT_DIR, APP_MODEL_DIR)
+    print(f"Saved fine-tuned model to {MODEL_EXPORT_DIR} and {APP_MODEL_DIR}")
+
+
 def run_bert_experiment(
         texts_train, texts_val, texts_test,
         y_train_mapped, y_val_mapped, y_test_mapped,
@@ -967,15 +981,3 @@ We have now compared:
 
 All results are logged in MLflow. 
 """
-def export_model_artifacts(model, tokenizer):
-    """
-    Persist the fine-tuned BERT model for both offline analysis and the FastAPI app.
-    """
-    MODEL_EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-    model.save_pretrained(MODEL_EXPORT_DIR)
-    tokenizer.save_pretrained(MODEL_EXPORT_DIR)
-
-    if APP_MODEL_DIR.exists():
-        shutil.rmtree(APP_MODEL_DIR)
-    shutil.copytree(MODEL_EXPORT_DIR, APP_MODEL_DIR)
-    print(f"Saved fine-tuned model to {MODEL_EXPORT_DIR} and {APP_MODEL_DIR}")
