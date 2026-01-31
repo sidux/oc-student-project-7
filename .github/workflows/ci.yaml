@@ -45,6 +45,9 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen
 
+      - name: Download NLTK data
+        run: uv run python -c "import nltk; nltk.download('stopwords'); nltk.download('wordnet')"
+
       - name: Static checks
         run: |
           uv run python -m compileall app script util notebook.py
