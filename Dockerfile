@@ -6,6 +6,9 @@ WORKDIR /srv/app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
+# Download NLTK data required for text preprocessing
+RUN uv run python -c "import nltk; nltk.download('stopwords', download_dir='/usr/share/nltk_data'); nltk.download('wordnet', download_dir='/usr/share/nltk_data')"
+
 COPY app ./app
 
 ENV PATH="/srv/app/.venv/bin:$PATH" \
